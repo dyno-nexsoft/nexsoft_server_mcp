@@ -98,13 +98,13 @@ void registerBuildTools(NexsoftMcpServer server, NexsoftClient client) {
     Tool(
       name: 'nexsoft_ci_reposts',
       description:
-          'Repost TikTok, YouTube, Facebook or Instagram videos to TBChat SocialFi (POST /reposts, alias for '
+          'Repost TikTok, YouTube, Facebook, Instagram or Douyin videos to TBChat SocialFi (POST /reposts, alias for '
           'ci.reposts). Returns a queued/running job.',
       inputSchema: Schema.object(
         properties: {
           'url': Schema.string(
               description:
-                  'TikTok, YouTube, Facebook or Instagram video or profile link'),
+                  'TikTok, YouTube, Facebook, Instagram or Douyin video or profile link'),
           'environment': UntitledSingleSelectEnumSchema(
             values: _buildEnvironments,
             description: 'Environment (default: dev)',

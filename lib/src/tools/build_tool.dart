@@ -104,7 +104,8 @@ void registerBuildTools(NexsoftMcpServer server, NexsoftClient client) {
         properties: {
           'url': Schema.string(
               description:
-                  'TikTok, YouTube, Facebook, Instagram or Douyin video or profile link'),
+                  'TikTok, YouTube, Facebook, Instagram or Douyin video or profile link; '
+                  'several links: one per line, or separated by spaces (up to 10, posted one after the other)'),
           'environment': UntitledSingleSelectEnumSchema(
             values: _buildEnvironments,
             description: 'Environment (default: dev)',

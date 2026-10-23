@@ -1,0 +1,122 @@
+import 'package:dart_mcp/server.dart';
+import 'package:nexsoft_server_shared/nexsoft_server_shared.dart';
+
+import '../allowed_actions.dart';
+import '../job_formatter.dart';
+import '../mcp_response.dart';
+import '../nexsoft_client.dart';
+import '../server.dart';
+
+String _paramsToMarkdown(List<ActionParam> params) {
+  if (params.isEmpty) return '_No parameters._';
+  return params.map((p) {
+    final req = p.isRequired ? '**required**' : 'optional';
+    final choices =
+        p.choices.isNotEmpty ? ', choices: ${p.choices.join('/')}' : '';
+    final def = p.defaultValue != null ? ', default: ${p.defaultValue}' : '';
+    return '- `${p.name}` (${p.type.toWire()}, $req$choices$def) — ${p.description}';
+  }).join('\n');
+}
+
+/// Registers read-only tools for server health/status and the
+/// self-describing action catalogue (`GET /actions`), which lets a caller
+/// discover every REST-exposed action without reading the Dart source.
+void registerMetaTools(NexsoftMcpServer server, NexsoftClient client) {
+  server.registerTool(
+    Tool(
+      name: 'nexsoft_health',
+      description:
+          'Liveness probe for the nexsoft_server REST API. No auth required.',
+      inputSchema: Schema.object(),
+    ),
+    (request) async {
+      final health = Health.fromJson(await client.getJson('/health'));
+      return mcpText(
+        '- **ok**: ${health.ok}\n'
+        '- **version**: ${health.version}\n'
+        '- **app_version**: ${health.appVersion}\n'
+        '- **uptime_seconds**: ${health.uptimeSeconds}\n'
+        '- **hostname**: ${health.hostname}',
+      );
+    },
+  );
+
+  server.registerTool(
+    Tool(
+      name: 'nexsoft_status',
+      description:
+          'Queue state and environment: Dart version, uptime, running and queued jobs.',
+      inputSchema: Schema.object(),
+    ),
+    (request) async {
+      final status = SystemStatus.fromJson(await client.getJson('/status'));
+      final header = [
+        '- **hostname**: ${status.hostname}',
+        '- **dartVersion**: ${status.dartVersion}',
+        '- **uptime**: ${status.uptime}',
+        '- **workingDirectory**: ${status.workingDirectory}',
+      ].join('\n');
+      final running = jobsToMarkdown(status.running);
+      final queued = jobsToMarkdown(status.queued);
+      return mcpText(
+        '$header\n\n### Running\n\n$running\n\n### Queued\n\n$queued',
+      );
+    },
+  );
+
+  server.registerTool(
+    Tool(
+      name: 'nexsoft_list_actions',
+      description:
+          'Catalogue of the actions this server may call (reading, and '
+          'running or cancelling jobs), with permission and kind '
+          "(query/mutation/job). Use nexsoft_describe_action for one action's "
+          'full parameter schema.',
+      inputSchema: Schema.object(),
+    ),
+    (request) async {
+      final json = await client.getJson('/actions');
+      final actions = (json['actions'] as List)
+          .map((a) => ActionSchema.fromJson(a as Map<String, dynamic>))
+          .where((a) => allowedActions.contains(a.name))
+          .toList();
+      final rows = actions
+          .map(
+            (a) =>
+                '| `${a.name}` | ${a.kind.name} | ${a.permission.toWire()} | ${a.description} |',
+          )
+          .join('\n');
+      return mcpText(
+        '| Action | Kind | Permission | Description |\n'
+        '| --- | --- | --- | --- |\n$rows',
+      );
+    },
+  );
+
+  server.registerTool(
+    Tool(
+      name: 'nexsoft_describe_action',
+      description:
+          "Full parameter schema for one action, by name (e.g. 'ci.build').",
+      inputSchema: Schema.object(
+        properties: {
+          'name': Schema.string(description: "Action name, e.g. 'ci.build'"),
+        },
+        required: ['name'],
+      ),
+    ),
+    (request) async {
+      final name = request.arguments!['name'] as String;
+      requireAllowedAction(name);
+      final action = ActionSchema.fromJson(
+        await client.getJson('/actions/${Uri.encodeComponent(name)}'),
+      );
+      return mcpText(
+        '### ${action.name}\n\n${action.description}\n\n'
+        '- **kind**: ${action.kind.name}\n'
+        '- **permission**: ${action.permission.toWire()}\n\n'
+        '**Params**\n\n${_paramsToMarkdown(action.params)}',
+      );
+    },
+  );
+}

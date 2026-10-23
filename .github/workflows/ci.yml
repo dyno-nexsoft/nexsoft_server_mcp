@@ -13,5 +13,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
+      # No `dart test`: this package has no tests of its own any more (they
+      # live with the server), and `dart test` fails when there is no test/.
       - run: dart analyze --fatal-infos
-      - run: dart test

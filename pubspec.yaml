@@ -1,7 +1,7 @@
 name: nexsoft_server_mcp
 description: MCP server for the nexsoft_server CI/build REST API.
 publish_to: none
-version: 5.4.0
+version: 5.5.0
 
 environment:
   sdk: ^3.6.0

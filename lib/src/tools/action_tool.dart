@@ -12,8 +12,9 @@ bool _looksLikeJob(Map<String, dynamic> data) =>
     data['state'] is String && data['action_name'] is String;
 
 /// Registers the generic dispatch tool, mirroring `POST /actions/{name}`, for
-/// an action without a dedicated tool. Only the names in [allowedActions]:
-/// anything else is refused here, before a request is made.
+/// an action without a dedicated tool: any action for an admin key, only the
+/// names in [allowedActions] otherwise, refused here before a request is made
+/// ([mayCall]).
 /// Use `nexsoft_describe_action` first to see the param schema for a given name.
 void registerActionTools(NexsoftMcpServer server, NexsoftClient client) {
   server.registerTool(
@@ -21,8 +22,9 @@ void registerActionTools(NexsoftMcpServer server, NexsoftClient client) {
       name: 'nexsoft_invoke_action',
       description:
           'Generic dispatch: invoke one of the actions nexsoft_list_actions '
-          'shows (reading, and running or cancelling jobs) by name. Returns '
-          "the job for kind='job' actions, the result otherwise.",
+          'shows by name (every action for an admin key; reading, and running '
+          'or cancelling jobs, for any other). Returns the job for '
+          "kind='job' actions, the result otherwise.",
       inputSchema: Schema.object(
         properties: {
           'name': Schema.string(

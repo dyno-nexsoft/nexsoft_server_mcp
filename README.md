@@ -17,10 +17,13 @@ gets only tools that read and run jobs, and no tool that administers
 deleting history). At start-up the server asks `nexsoft_server` who the key is
 (`system.whoami`); for an `admin` key it adds the three admin tools below and
 tells the client the tool list changed. A key that cannot be identified keeps
-the plain set. `nexsoft_invoke_action` takes only the names in
-[`lib/src/allowed_actions.dart`](lib/src/allowed_actions.dart), plus the admin
-ones for an admin key. Everything else that administers the server (API keys,
-secrets, limits, the schedule, the AI provider, cron) is the dashboard's.
+the plain set. For a `user` key, `nexsoft_invoke_action`, `nexsoft_list_actions`
+and `nexsoft_describe_action` take only the names in
+[`lib/src/allowed_actions.dart`](lib/src/allowed_actions.dart), and
+`nexsoft_retry_job` only a job that ran one of them (a retry runs whatever the
+job ran). An `admin` key is the server's owner: those tools reach **every**
+action the REST API has, and `nexsoft_server`'s own permission checks still
+apply (no action ever returns a secret's value).
 
 | Tool                          | Description                                                |
 | ------------------------------ | ----------------------------------------------------------- |
@@ -77,9 +80,10 @@ NEXSOFT_SERVER_API_KEY=<secret>
 
 **Choose the key for what the client may do.** A `user` key (`read` + `invoke`)
 is the one to hand to anyone else: the tools above, and `nexsoft_server` refuses
-every admin action whatever is sent. An `admin` key also gets Hot Reload,
-Restart and the log tail: keep it for the one MCP you drive deploys from. The
-key is the boundary, the tool list a convenience. A key an owner creates starts
+every admin action whatever is sent. An `admin` key gets every action, plus
+Hot Reload, Restart and the log tail as tools of their own: keep it for the one
+MCP on the server's own machine that you administer it from. The key is the
+boundary, the tool list a convenience. A key an owner creates starts
 as `admin`, so an admin edits its scopes down to `read` and `invoke`
 (`admin.apiKeys.edit`, or the dashboard's API keys screen) before it goes
 anywhere else.
@@ -169,7 +173,7 @@ bin/
 lib/src/
 ├── server.dart               # NexsoftMcpServer: registers every tool group
 ├── nexsoft_client.dart           # http client: API key header, selective GET cache
-├── allowed_actions.dart      # the only actions this server calls
+├── allowed_actions.dart      # what a user key may call (an admin key: every action)
 ├── job_formatter.dart        # jobToMarkdown · jobsToMarkdown
 ├── mcp_response.dart         # mcpText
 └── tools/
@@ -178,5 +182,5 @@ lib/src/
     ├── build_tool.dart        # nexsoft_ci_build · nexsoft_ci_gen · nexsoft_ci_interaction · nexsoft_ci_reposts · nexsoft_ci_replace · nexsoft_autocomplete_branches
     ├── zentao_tool.dart       # nexsoft_zentao_report_get
     ├── config_tool.dart       # nexsoft_schedule_get · nexsoft_limits_get · nexsoft_ai_provider_get
-    └── action_tool.dart       # nexsoft_invoke_action, limited to allowed_actions.dart
+    └── action_tool.dart       # nexsoft_invoke_action, limited to allowed_actions.dart for a user key
 ```

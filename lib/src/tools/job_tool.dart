@@ -1,6 +1,7 @@
 import 'package:dart_mcp/server.dart';
 import 'package:nexsoft_server_shared/nexsoft_server_shared.dart';
 
+import '../allowed_actions.dart';
 import '../job_formatter.dart';
 import '../mcp_response.dart';
 import '../nexsoft_client.dart';
@@ -152,6 +153,15 @@ void registerJobTools(NexsoftMcpServer server, NexsoftClient client) {
     ),
     (request) async {
       final id = request.arguments!['id'] as String;
+      // A retry runs whatever the job ran, so it is held to the same list as
+      // nexsoft_invoke_action: without this a key that may not call
+      // `ci.clean` could still run one again from its job.
+      if (!server.isAdmin) {
+        final recorded = Job.fromJson(
+          await client.getJson('/jobs/${Uri.encodeComponent(id)}'),
+        );
+        requireAllowedAction(recorded.actionName ?? '', admin: false);
+      }
       final job = Job.fromJson(
         await client.postJson('/jobs/${Uri.encodeComponent(id)}/retry'),
       );

@@ -1,17 +1,22 @@
-/// The actions this MCP server will call for every key: reading, and running,
-/// cancelling and promoting jobs.
+/// The actions this MCP server will call for a key that is not an admin's:
+/// reading, and running, cancelling and promoting jobs.
 ///
-/// An AI client can be talked into anything a tool lets it do, so a key that is
-/// not an admin gets no tool that administers nexsoft_server (API keys, Restart,
-/// Hot Reload, logs, limits, the schedule, the AI provider, cron) or writes
-/// anywhere else (Zentao reports, GitLab reviews, deleting history). This list
-/// is what keeps `nexsoft_invoke_action`, which takes any action name, from
-/// reaching them anyway.
+/// An AI client can be talked into anything a tool lets it do, so such a key
+/// gets no tool that administers nexsoft_server (API keys, Restart, Hot Reload,
+/// logs, limits, the schedule, the AI provider, cron) or writes anywhere else
+/// (Zentao reports, GitLab reviews, deleting history). This list is what keeps
+/// `nexsoft_invoke_action`, which takes any action name, and
+/// `nexsoft_retry_job`, which re-runs whatever a job ran, from reaching them
+/// anyway.
 ///
 /// It is not the security boundary on its own: the key is. nexsoft_server
 /// refuses every admin action for a key whose role is `user` (`read` + `invoke`,
 /// never `admin`), whatever is sent. `ci.clean` needs `invoke_dangerous` and is
 /// left out for the same reason.
+///
+/// An admin key is the server's owner working through their own AI client, on
+/// a machine that holds the key anyway: it may call every action
+/// ([mayCall]), and the server's own permission checks still apply.
 const allowedActions = {
   // Jobs.
   'ci.build',
@@ -37,15 +42,14 @@ const allowedActions = {
   'zentao.status',
 };
 
-/// What an admin key may also call, matching the tools of `tools/admin_tool.dart`:
-/// deploying and reading the server's log. Nothing else that administers the server.
-const adminActions = {'admin.logs.tail', 'system.hotReload', 'system.restart'};
+/// Whether this MCP server will call [name]: any action for an [admin] key,
+/// only [allowedActions] otherwise.
+bool mayCall(String name, {required bool admin}) =>
+    admin || allowedActions.contains(name);
 
-/// Refuses [name] unless it is in [allowedActions], or in [adminActions] when
-/// the key is an [admin], before anything is sent.
-void requireAllowedAction(String name, {bool admin = false}) {
-  if (!allowedActions.contains(name) &&
-      !(admin && adminActions.contains(name))) {
+/// Refuses [name] unless [mayCall] allows it, before anything is sent.
+void requireAllowedAction(String name, {required bool admin}) {
+  if (!mayCall(name, admin: admin)) {
     throw ArgumentError.value(
       name,
       'name',

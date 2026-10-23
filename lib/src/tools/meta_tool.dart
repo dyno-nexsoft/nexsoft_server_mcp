@@ -68,8 +68,9 @@ void registerMetaTools(NexsoftMcpServer server, NexsoftClient client) {
     Tool(
       name: 'nexsoft_list_actions',
       description:
-          'Catalogue of the actions this server may call (reading, and '
-          'running or cancelling jobs), with permission and kind '
+          'Catalogue of the actions this server may call for this key (every '
+          'one for an admin key; reading, and running or cancelling jobs, for '
+          'any other), with permission and kind '
           "(query/mutation/job). Use nexsoft_describe_action for one action's "
           'full parameter schema.',
       inputSchema: Schema.object(),
@@ -78,7 +79,7 @@ void registerMetaTools(NexsoftMcpServer server, NexsoftClient client) {
       final json = await client.getJson('/actions');
       final actions = (json['actions'] as List)
           .map((a) => ActionSchema.fromJson(a as Map<String, dynamic>))
-          .where((a) => allowedActions.contains(a.name))
+          .where((a) => mayCall(a.name, admin: server.isAdmin))
           .toList();
       final rows = actions
           .map(
@@ -107,7 +108,7 @@ void registerMetaTools(NexsoftMcpServer server, NexsoftClient client) {
     ),
     (request) async {
       final name = request.arguments!['name'] as String;
-      requireAllowedAction(name);
+      requireAllowedAction(name, admin: server.isAdmin);
       final action = ActionSchema.fromJson(
         await client.getJson('/actions/${Uri.encodeComponent(name)}'),
       );

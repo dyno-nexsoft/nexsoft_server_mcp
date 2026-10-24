@@ -25,7 +25,9 @@ void registerJobTools(NexsoftMcpServer server, NexsoftClient client) {
     Tool(
       name: 'nexsoft_list_jobs',
       description:
-          'List jobs, newest first. Optionally filter by state and cap the count.',
+          'List jobs, newest first. Optionally filter by state and cap the '
+          'count; for older jobs, pass the next_cursor a page ends with as '
+          'before.',
       inputSchema: Schema.object(
         properties: {
           'state': UntitledSingleSelectEnumSchema(
@@ -35,6 +37,10 @@ void registerJobTools(NexsoftMcpServer server, NexsoftClient client) {
           'limit': Schema.int(
             description: 'Max jobs to return (default 50, clamped 1..200)',
           ),
+          'before': Schema.string(
+            description:
+                'The next_cursor of the page before: the jobs older than it',
+          ),
         },
       ),
     ),
@@ -43,13 +49,17 @@ void registerJobTools(NexsoftMcpServer server, NexsoftClient client) {
       final query = <String, String>{
         if (args['state'] case final state?) 'state': state as String,
         if (args['limit'] case final limit?) 'limit': '$limit',
+        if (args['before'] case final String before) 'before': before,
       };
       final qs = query.isEmpty ? '' : '?${Uri(queryParameters: query).query}';
       final json = await client.getJson('/jobs$qs');
-      final jobs = (json['jobs'] as List)
-          .map((j) => Job.fromJson(j as Map<String, dynamic>))
-          .toList();
-      return mcpText(jobsToMarkdown(jobs));
+      final page = JobPage.fromJson(json);
+      final next = page.nextCursor;
+      return mcpText(
+        next == null
+            ? jobsToMarkdown(page.jobs)
+            : '${jobsToMarkdown(page.jobs)}\n\nOlder jobs: `before: $next`',
+      );
     },
   );
 

@@ -1,0 +1,14 @@
+# Force Git to normalize all text files to LF (Line Feed) on commit
+* text=auto eol=lf
+
+# Ensure source code files always use LF, even when cloned on Windows
+*.dart text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.sh text eol=lf
+*.plist text eol=lf
+
+# Except Windows batch scripts (e.g. .bat, .cmd), which keep CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf

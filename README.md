@@ -8,6 +8,9 @@ Written in Dart (`package:dart_mcp`), matching the rest of the org's stack —
 this used to be TypeScript; see git history before the v3.0.0 rewrite for
 that implementation.
 
+Runs on **Dart 3.9 or newer** (Flutter 3.35 or newer), so it works with the SDK
+a Flutter project already has; a compiled executable needs no SDK at all.
+
 ## Features
 
 **The tools are the API Swagger shows.** Every key gets one tool per
@@ -145,7 +148,6 @@ and the env block is called `environment`, not `env`:
 ```bash
 dart pub get
 dart analyze
-dart test
 dart run bin/nexsoft_server_mcp.dart   # runs the server directly against stdio
 ```
 

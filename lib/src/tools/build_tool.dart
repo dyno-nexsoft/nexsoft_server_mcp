@@ -77,6 +77,12 @@ void registerBuildTools(NexsoftMcpServer server, NexsoftClient client) {
             description: 'Skip uploading the build to Firebase App '
                 'Distribution (default: false)',
           ),
+          'flutter_args': Schema.list(
+            items: Schema.string(),
+            description: 'Extra flutter build flags, one word each, e.g. '
+                '--dart-define=ENABLE_HTTP3=false (a define wins over the '
+                '.env file)',
+          ),
           'runs_on': _runsOn,
           ..._jobOptions,
         },

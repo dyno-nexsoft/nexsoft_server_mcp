@@ -17,6 +17,7 @@ String jobToMarkdown(Job job) {
   }
   if (job.exitCode != null) lines.add('- **exit_code**: ${job.exitCode}');
   if (job.lastLine != null) lines.add('- **last_line**: ${job.lastLine}');
+  if (job.failure != null) lines.add('- **failure**: ${job.failure}');
   if (job.logUrl != null) lines.add('- **log_url**: ${job.logUrl}');
   if (job.warnings.isNotEmpty) {
     lines.add('- **warnings**: ${job.warnings.join('; ')}');

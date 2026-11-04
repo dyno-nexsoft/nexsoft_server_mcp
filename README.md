@@ -51,7 +51,7 @@ set.
   offset-based polling — call it again with the returned `nextOffset`.
 - `nexsoft_server` is LAN-only, not published to the public internet. This MCP
   server must run somewhere that can reach it directly — e.g. on the same
-  host, pointing `NEXSOFT_SERVER_BASE_URL` at `https://localhost:8443/api/v1`
+  host, pointing `NEXSOFT_SERVER_BASE_URL` at `https://localhost/api/v1`
   (plain `http://localhost:8080/api/v1` only on a server without HTTPS: once
   it has HTTPS, its plain-HTTP port refuses the API) —
   or over a VPN/LAN connection to it.

@@ -68,7 +68,18 @@ Set these as real OS environment variables (not `--dart-define`) — via a
 ```env
 NEXSOFT_SERVER_BASE_URL=https://<nexsoft-server-host>/api/v1
 NEXSOFT_SERVER_API_KEY=<secret>
+# Only when the server's CA is not installed on this machine:
+NEXSOFT_SERVER_CA_FILE=/path/to/nexsoft-ca.crt
 ```
+
+**The server's certificate must be trusted.** nexsoft_server's HTTPS
+certificate comes from a private CA. This client trusts the system's roots,
+plus the CA file `NEXSOFT_SERVER_CA_FILE` names, and nothing else: it never
+skips the check, since the API key goes with every request. So either install
+the CA on this machine (the server's setup page, on port 8080 of the same host,
+has a one-line install), or download its `/ca.crt` and point
+`NEXSOFT_SERVER_CA_FILE` at it. A tool call that meets an untrusted certificate
+says so.
 
 **Choose the key for what the client may do.** A `user` key (`read` + `invoke`)
 is the one to hand to anyone else: the tools above, and `nexsoft_server` refuses

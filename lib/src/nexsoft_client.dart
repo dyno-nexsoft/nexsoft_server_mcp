@@ -44,7 +44,7 @@ class NexsoftClient implements ActionTransport {
     final resolvedBaseUrl =
         baseUrl ?? Platform.environment['NEXSOFT_SERVER_BASE_URL'] ?? '';
     return NexsoftClient._(
-      client: client ?? _trustingClient(resolvedBaseUrl),
+      client: client ?? _trustingClient(),
       baseUrl: resolvedBaseUrl,
       apiKey: apiKey ?? Platform.environment['NEXSOFT_SERVER_API_KEY'] ?? '',
     );
@@ -61,16 +61,24 @@ class NexsoftClient implements ActionTransport {
   final String baseUrl;
   final String _apiKey;
 
-  /// nexsoft_server serves a self-signed certificate over LAN (no public CA can
-  /// issue one for a `.local` hostname). Trusting it blanket-wide would
-  /// silently accept a cert from anywhere; scoping the callback to the exact
-  /// configured host keeps the bypass limited to the one server this client
-  /// is built to talk to.
-  static http.Client _trustingClient(String baseUrl) {
-    final expectedHost = Uri.tryParse(baseUrl)?.host;
-    final inner = HttpClient()
-      ..badCertificateCallback = (cert, host, port) => host == expectedHost;
-    return IOClient(inner);
+  /// nexsoft_server's certificate comes from a private CA (no public one can
+  /// issue for a `.local` name), so this client trusts the system's roots
+  /// plus that CA's file when `NEXSOFT_SERVER_CA_FILE` names it, and nothing
+  /// else. It used to accept any certificate for the configured host, which
+  /// handed the API key to whoever answered as that host on the LAN.
+  static http.Client _trustingClient() {
+    final caFile = Platform.environment['NEXSOFT_SERVER_CA_FILE'] ?? '';
+    final context = SecurityContext(withTrustedRoots: true);
+    if (caFile.isNotEmpty) {
+      try {
+        context.setTrustedCertificates(caFile);
+      } on Exception catch (e) {
+        throw StateError(
+            'NEXSOFT_SERVER_CA_FILE: cannot load "$caFile" as a certificate '
+            '($e).');
+      }
+    }
+    return IOClient(HttpClient(context: context));
   }
 
   final Map<String, _CacheEntry> _cache = {};

@@ -131,6 +131,14 @@ String logLinesToMarkdown(
 String errorToMarkdown(Object error) => switch (error) {
       NexsoftRequestError(:final status, :final code, :final message) =>
         '**Request failed** ($status `$code`): $message',
+      // Before the generic failure: a refused certificate is not the server
+      // restarting, and trying again changes nothing.
+      TlsException() =>
+        "**The nexsoft_server certificate is not trusted.** Install the server's "
+            'CA on this machine (its setup page, port 8080 of the same host, '
+            'has a one-line install), or set `NEXSOFT_SERVER_CA_FILE` to the '
+            'downloaded `nexsoft-ca.crt`, then restart this MCP server.'
+            '\n\n_${_firstLine('$error')}_',
       http.ClientException() ||
       SocketException() =>
         '**Cannot reach the nexsoft_server API.** It may be restarting — try again in '

@@ -12,9 +12,12 @@ environment:
 dependencies:
   dart_mcp: ^0.5.2
   nexsoft_server_shared:
-    git: 
+    git:
       url: https://github.com/dyno-nexsoft/nexsoft_server_shared.git
-      ref: main
+      # A commit, not `main`: what this builds against does not move under it,
+      # and a clone later gets the models it was written for. Bump it with the
+      # shared package.
+      ref: 289e018090331bbb989d41fe0d1d79e1af030b64
   http: ^1.2.0
 
 dev_dependencies:

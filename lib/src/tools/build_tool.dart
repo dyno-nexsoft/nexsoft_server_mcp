@@ -110,7 +110,8 @@ void registerBuildTools(NexsoftMcpServer server, NexsoftClient client) {
         properties: {
           'type': UntitledSingleSelectEnumSchema(
             values: _interactionTypes,
-            description: 'like, share, view or comment',
+            description:
+                'like, share, view, comment, follow (the post author), or full (all of them)',
           ),
           'post': Schema.string(
             description:

@@ -14,11 +14,11 @@ final _buildPlatforms = [for (final p in PlatformBuild.values) p.toWire()];
 final _buildEnvironments = [for (final e in EnvironmentBuild.values) e.name];
 final _interactionTypes = [for (final t in PostInteractionType.values) t.name];
 
-/// `runs_on`, for the jobs a build machine may run. A plain string: the labels
+/// `runs_on`, for the jobs a builder may run. A plain string: the labels
 /// are the server's (its host names and its configuration), so it checks them
 /// and names the known ones when one is wrong.
 final _runsOn = Schema.string(
-  description: 'Machine to run on, by label: local, a build machine host or '
+  description: 'Machine to run on, by label: local, a builder host or '
       'short name, or a label of its own (default: any machine)',
 );
 

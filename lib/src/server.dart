@@ -13,7 +13,7 @@ import 'tools/meta_tool.dart';
 /// Kept in sync with `pubspec.yaml`'s `version:` by hand — this process has
 /// no bundled `package.json`-equivalent to read its own version from at
 /// runtime.
-const mcpServerVersion = '6.0.0';
+const mcpServerVersion = '6.1.0';
 
 /// nexsoft_server's MCP server: a thin, discoverable wrapper over its REST API
 /// (`docs/rest-api.md` in the nexsoft_server repo). Every tool is a direct

@@ -1,7 +1,7 @@
 name: nexsoft_server_mcp
 description: MCP server for the nexsoft_server CI/build REST API.
 publish_to: none
-version: 6.1.0
+version: 6.2.0
 
 environment:
   # As low as its packages allow, since anyone's machine runs it: dart_mcp
@@ -17,7 +17,7 @@ dependencies:
       # A commit, not `main`: what this builds against does not move under it,
       # and a clone later gets the models it was written for. Bump it with the
       # shared package.
-      ref: 94d2d7400678bd74d0bbe81a422cb01e588c3fba
+      ref: 351e186d73c5ef28497699a73a7f70aa202ff69d
   http: ^1.2.0
 
 dev_dependencies:

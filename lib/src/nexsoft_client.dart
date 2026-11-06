@@ -59,6 +59,11 @@ class NexsoftClient implements ActionTransport {
 
   final http.Client _client;
   final String baseUrl;
+
+  /// The agent this server runs for (`claude-code/2.1.0`), as its MCP
+  /// handshake named it; sent as `X-Client` so the server's audit log says
+  /// which agent used the key. Set once the handshake is done.
+  String? agent;
   final String _apiKey;
 
   /// nexsoft_server's certificate comes from a private CA (no public one can
@@ -92,6 +97,7 @@ class NexsoftClient implements ActionTransport {
   Map<String, String> get _headers => {
         'Content-Type': 'application/json',
         if (_apiKey.isNotEmpty) 'X-API-Key': _apiKey,
+        clientHeader: ?agent,
       };
 
   Uri _uri(String path) => Uri.parse('$baseUrl$path');
